@@ -6,7 +6,12 @@
     <form method="POST" action="">
         {% csrf_token %}
         <p>Are you sure you want to  delete "{{obj}}"?</p>
-        
+
+        <!-- 
+            "{{request.META.HTTP_REFERER}}"" can be useful in many cases, 
+            including when you want to REDIRECT the user back to the PREVIOUS PAGE
+            after a certain action is performed,such as deleting a post.
+         -->
         <a href="{{request.META.HTTP_REFERER}}">Go Back</a>
         <input type="submit" value="Confirm">
     </form>
