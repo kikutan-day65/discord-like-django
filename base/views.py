@@ -1,10 +1,40 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages # used for error messages
 from django.db.models import Q # used for search function
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 
 from .models import Room, Topic
 from .forms import RoomForm
 
 # Create your views here.
+
+def login_page(request):
+
+    if request.method == 'POST':
+
+        # get username and password
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        # check if the user exists
+        try:
+            user = User.objects.get(username=username)
+        except:
+            messages.error(request, 'User does not exist')
+        
+        user = authenticate(request, username=username, password=password)
+
+        # then login and redirect to home, otherwise error message
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'Username OR Password does not exist')
+
+    context = {}
+    return render(request, 'base/login_register.html', context)
+
 
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''
