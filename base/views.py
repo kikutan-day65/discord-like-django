@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required   # used for restricti
 from django.db.models import Q # used for search function
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
 
 from .models import Room, Topic
 from .forms import RoomForm
@@ -12,15 +13,15 @@ from .forms import RoomForm
 # Create your views here.
 
 def login_page(request):
-
+    page = 'login'
     if request.user.is_authenticated:
         return redirect('home')
 
     if request.method == 'POST':
 
         # get username and password
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get('username').lower()
+        password = request.POST.get('password').lower()
 
         # check if the user exists
         try:
@@ -37,12 +38,60 @@ def login_page(request):
         else:
             messages.error(request, 'Username OR Password does not exist')
 
-    context = {}
+    context = {'page': page}
     return render(request, 'base/login_register.html', context)
 
 def logout_user(request):
     logout(request)
     return redirect('home')
+
+def register_user(request):
+
+    """
+        The reason UserCreationForm is used twice is because we need to create an
+        instance of the form with no data to display it initially. If the user
+        submits the form (i.e., the request method is POST), we need to create
+        another instance of the form with the submitted data to process it.
+
+        We convert the username to lowercase to ensure that usernames are
+        consistent, regardless of whether they are entered in uppercase or
+        lowercase. This helps prevent users from accidentally creating
+        multiple accounts with the same username.
+    """
+
+    # Create an instance of UserCreationForm with no data
+    form = UserCreationForm()
+
+     # If the request method is POST, the user has submitted the form
+    if request.method == 'POST':
+
+         # Create an instance of UserCreationForm with the POST data
+        form = UserCreationForm(request.POST)
+
+        # If the form data is valid
+        if form.is_valid():
+
+            # Create a new user account but don't save it to the database yet
+            user = form.save(commit=False)
+
+            # Convert the username to lowercase
+            user.username = user.username.lower()
+
+            # Save the user to the database
+            user.save()
+
+            # Log the user in
+            login(request, user)
+
+            # Redirect the user to the home page
+            return redirect('home')
+        
+        # If the form data is not valid
+        else:
+            messages.error(request, 'An error occured during registration')
+
+    return render(request, 'base/login_register.html', {'form': form})
+
 
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''
