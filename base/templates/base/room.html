@@ -25,8 +25,7 @@
 
             
             {% for message in room_messages %}
-                <div>
-                    
+                <div>               
                     {% if request.user == message.user %}                        
                     <a href="{% url 'delete-message' message.id %}">Delete</a>
                     {% endif %}
