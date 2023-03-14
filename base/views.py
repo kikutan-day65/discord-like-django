@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.contrib import messages # used for error messages
+from django.contrib.auth.decorators import login_required   # used for restriction of page
 from django.db.models import Q # used for search function
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -10,6 +12,9 @@ from .forms import RoomForm
 # Create your views here.
 
 def login_page(request):
+
+    if request.user.is_authenticated:
+        return redirect('home')
 
     if request.method == 'POST':
 
@@ -60,6 +65,7 @@ def room(request, pk):
     context = {'room': room}
     return render(request, 'base/room.html', context)
 
+@login_required(login_url='login') # allows only logged-in user to do the fuction below
 def create_room(request):
     form = RoomForm()
 
@@ -77,9 +83,14 @@ def create_room(request):
     context = {'form': form}
     return render(request, 'base/room_form.html', context)
 
+@login_required(login_url='login') # allows only logged-in user to do the fuction below
 def update_room(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)  # pre-filled room info when editing it
+
+    # only the host can update the room
+    if request.method != room.host:
+        return HttpResponse('You are not allowed here!!')
 
     if request.method == 'POST':
         form = RoomForm(request.POST, instance=room)
@@ -91,8 +102,13 @@ def update_room(request, pk):
     context = {'form': form}
     return render(request, 'base/room_form.html', context)
 
+@login_required(login_url='login') # allows only logged-in user to do the fuction below
 def delete_room(request, pk):
     room = Room.objects.get(id=pk)
+
+    # only the host can delete the room
+    if request.method != room.host:
+        return HttpResponse('You are not allowed here!!')
 
     if request.method == 'POST':
         room.delete()
