@@ -10,3 +10,4 @@ class RoomForm(ModelForm):
     class Meta:
         model = Room
         fields = '__all__'
+        exclude = ['host', 'participants']  # dont display host and participants section in the create roon form

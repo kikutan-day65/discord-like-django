@@ -154,7 +154,9 @@ def create_room(request):
 
         # if form is valid, then save it and redirect to the home
         if form.is_valid():
-            form.save()
+            room = form.save(commit=False)
+            room.host = request.user
+            room.save()
             return redirect('home')
 
     context = {'form': form}
