@@ -145,40 +145,46 @@ def user_profile(request, pk):
 @login_required(login_url='login') # allows only logged-in user to do the fuction below
 def create_room(request):
     form = RoomForm()
+    topics = Topic.objects.all()
 
     # check if the method is POST
     if request.method == 'POST':
 
         # get and save data in the form variable
-        form = RoomForm(request.POST)
+        topic_name = request.POST.get('topic')
+        topic, created = Topic.objects.get_or_create(name=topic_name)
 
-        # if form is valid, then save it and redirect to the home
-        if form.is_valid():
-            room = form.save(commit=False)
-            room.host = request.user
-            room.save()
-            return redirect('home')
+        Room.objects.create(
+            host=request.user,
+            topic=topic,
+            name=request.POST.get('name'),
+            description=request.POST.get('description'),
+        ) 
+        return redirect('home')
 
-    context = {'form': form}
+    context = {'form': form, 'topics': topics}
     return render(request, 'base/room_form.html', context)
 
 @login_required(login_url='login') # allows only logged-in user to do the fuction below
 def update_room(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)  # pre-filled room info when editing it
+    topics = Topic.objects.all()
 
     # only the host can update the room
     if request.method != room.host:
         return HttpResponse('You are not allowed here!!')
 
     if request.method == 'POST':
-        form = RoomForm(request.POST, instance=room)
-        
-        if form.is_valid():
-            form.save()
-            return redirect('home')
+        topic_name = request.POST.get('topic')
+        topic, created = Topic.objects.get_or_create(name=topic_name)
+        room.name = request.POST.get('name')
+        room.topic = topic
+        room.description = request.POST.get('description')
+        room.save()
+        return redirect('home')
 
-    context = {'form': form}
+    context = {'form': form, 'topics': topics, 'room': room}
     return render(request, 'base/room_form.html', context)
 
 @login_required(login_url='login') # allows only logged-in user to do the fuction below
