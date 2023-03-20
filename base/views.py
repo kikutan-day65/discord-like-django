@@ -226,4 +226,4 @@ def update_user(request):
             form.save()
             return redirect('user-profile', pk=user.id)
 
-    return render(request, 'base/update-user.html', {'form': form,})
+    return render(request, 'base/update_user.html', {'form': form,})
