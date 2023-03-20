@@ -18,4 +18,6 @@ urlpatterns = [
     path('delete-message/<str:pk>/', views.delete_message, name='delete-message'),
     
     path('update-user/', views.update_user, name='update-user'),
+    
+    path('topics/', views.topics_page, name='topics'),
 ]
